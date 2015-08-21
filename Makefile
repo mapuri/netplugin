@@ -1,5 +1,5 @@
 
-.PHONY: all build clean default system-test unit-test
+.PHONY: all all-CI build clean default system-test unit-test release tar
 
 # find all verifiable packages.
 # XXX: explore a better way that doesn't need multiple 'find'
@@ -8,6 +8,11 @@ PKGS += `find . -mindepth 2 -maxdepth 2 -type d -name '*'| grep -vE '/\..*$\|God
 TO_BUILD := ./netplugin/ ./netmaster/ ./netdcli/ ./mgmtfn/k8contivnet/ ./mgmtfn/dockcontivnet/
 HOST_GOBIN := `if [ -n "$$(go env GOBIN)" ]; then go env GOBIN; else dirname $$(which go); fi`
 HOST_GOROOT := `go env GOROOT`
+NAME := netplugin
+VERSION := v0.0.$(`date -u +%m-%d-%Y.%H-%M-%S.UTC`)
+TAR_EXT := tar.bz2
+TAR_LOC := .
+TAR_FILE := $(TAR_LOC)/$(NAME)-$(VERSION).$(TAR_EXT)
 
 all: build unit-test system-test system-test-dind centos-tests
 
@@ -88,3 +93,21 @@ system-test-dind:
 
 regress-test-dind:
 	CONTIV_TESTBED=DIND make regress-test
+
+tar: clean-tar build
+	@tar -jcf $(TAR_FILE) -C $(GOPATH)/bin netplugin netdcli netmaster dockcontivnet k8contivnet
+
+clean-tar:
+	@rm -f $(TAR_LOC)/*.$(TAR_EXT)
+
+# GITHUB_USER and GITHUB_TOKEN are needed be set to run github-release
+release: tar
+	@latest_tag=$$(git describe --tags `git rev-list --tags --max-count=1`); \
+		comparison="$$latest_tag..HEAD"; \
+		changelog=$$(git log $$comparison --oneline --no-merges --reverse); \
+		if [ -z "$$changelog" ]; then echo "No new changes to release!"; exit 0; fi; \
+		set -x; \
+		( ( github-release release -p -r netplugin -t $(VERSION) -d "$$changelog" ) && \
+		( github-release upload -r netplugin -t $(VERSION) -n "binaries" -f $(TAR_FILE) || \
+		github-release delete -r netplugin -t $(VERSION) ) ) || exit 1
+	@make clean-tar
