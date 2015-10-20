@@ -39,6 +39,7 @@ type EndpointGroup struct {
 	// every object has a key
 	Key string `json:"key,omitempty"`
 
+	Bandwidth       int      `json:"bandwidth,omitempty"`
 	EndpointGroupID int      `json:"endpointGroupId,omitempty"`
 	GroupName       string   `json:"groupName,omitempty"`
 	NetworkName     string   `json:"networkName,omitempty"`

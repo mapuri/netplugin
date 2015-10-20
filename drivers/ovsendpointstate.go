@@ -36,6 +36,7 @@ type OvsCfgEndpointState struct {
 	HomingHost      string `json:"homingHost"`
 	IntfName        string `json:"intfName"`
 	VtepIP          string `json:"vtepIP"`
+	Bw              int    `json:"bw"`
 }
 
 // Write the state.

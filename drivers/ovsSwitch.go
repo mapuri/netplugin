@@ -248,7 +248,7 @@ func (sw *OvsSwitch) CreatePort(intfName string, cfgEp *OvsCfgEndpointState, pkt
 	}
 
 	// Ask OVSDB driver to add the port
-	err = sw.ovsdbDriver.CreatePort(ovsPortName, ovsIntfType, cfgEp.ID, pktTag)
+	err = sw.ovsdbDriver.CreatePort(ovsPortName, ovsIntfType, cfgEp.ID, pktTag, cfgEp.Bw)
 	if err != nil {
 		return err
 	}
@@ -464,7 +464,7 @@ func (sw *OvsSwitch) AddUplinkPort(intfName string) error {
 	// Check if port is already part of the OVS and add it
 	if !sw.ovsdbDriver.IsPortNamePresent(intfName) {
 		// Ask OVSDB driver to add the port as a trunk port
-		err = sw.ovsdbDriver.CreatePort(intfName, "", uplinkID, 0)
+		err = sw.ovsdbDriver.CreatePort(intfName, "", uplinkID, 0, 0)
 		if err != nil {
 			log.Errorf("Error adding uplink %s to OVS. Err: %v", intfName, err)
 			return err

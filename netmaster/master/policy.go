@@ -41,15 +41,15 @@ func InitPolicyMgr() error {
 	return nil
 }
 
-// getEndpointGroupID returns endpoint group Id for a service
+// getEndpointGroup returns endpoint group for a service
 // It autocreates the endpoint group if it doesnt exist
-func getEndpointGroupID(serviceName, networkName string) (int, error) {
+func getEndpointGroup(serviceName, networkName string) (*contivModel.EndpointGroup, error) {
 	// FIXME: Get tenant name
 	tenantName := "default"
 
 	// If service name is not specified, we are done
 	if serviceName == "" {
-		return 0, nil
+		return nil, nil
 	}
 
 	// form the key based on network and service name.
@@ -70,19 +70,19 @@ func getEndpointGroupID(serviceName, networkName string) (int, error) {
 		err := contivModel.CreateEndpointGroup(&endpointGroup)
 		if err != nil {
 			log.Errorf("Error creating endpoint group: %+v, Err: %v", endpointGroup, err)
-			return 0, err
+			return nil, err
 		}
 
 		// find again
 		epg = contivModel.FindEndpointGroup(epgKey)
 		if epg == nil {
 			log.Errorf("Error creating endpoint group %s.", epgName)
-			return 0, core.Errorf("EPG not created")
+			return nil, core.Errorf("EPG not created")
 		}
 	}
 
 	// return endpoint group id
-	return epg.EndpointGroupID, nil
+	return epg, nil
 }
 
 // PolicyAttach attaches a policy to an endpoint and adds associated rules to policyDB

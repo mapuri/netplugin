@@ -252,7 +252,7 @@ func (d *OvsdbDriver) GetPortOrIntfNameFromID(id string, isPort bool) (string, e
 }
 
 // CreatePort creates an OVS port
-func (d *OvsdbDriver) CreatePort(intfName, intfType, id string, tag int) error {
+func (d *OvsdbDriver) CreatePort(intfName, intfType, id string, tag, bw int) error {
 	// intfName is assumed to be unique enough to become uuid
 	portUUIDStr := intfName
 	intfUUIDStr := fmt.Sprintf("Intf%s", intfName)
@@ -268,6 +268,10 @@ func (d *OvsdbDriver) CreatePort(intfName, intfType, id string, tag int) error {
 	intf := make(map[string]interface{})
 	intf["name"] = intfName
 	intf["type"] = intfType
+	// XXX: It would be better to use QoS table instead, just hacking interface table for demo.
+	// setting burst size as 10% of the bandwidth. DO we need this come from user?
+	intf["ingress_policing_rate"] = bw
+	intf["ingress_policing_burst"] = int(0.1 * float64(bw))
 	idMap["endpoint-id"] = id
 	intf["external_ids"], err = libovsdb.NewOvsMap(idMap)
 	if err != nil {

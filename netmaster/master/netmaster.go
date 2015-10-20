@@ -817,10 +817,13 @@ func CreateEndpoint(stateDriver core.StateDriver, network *intent.ConfigNetwork,
 	}
 
 	// Set endpoint group
-	epCfg.EndpointGroupID, err = getEndpointGroupID(ep.ServiceName, network.Name)
+	epg, err := getEndpointGroup(ep.ServiceName, network.Name)
 	if err != nil {
 		log.Errorf("Error getting endpoint group for %s.%s. Err: %v", ep.ServiceName, network.Name, err)
 		return err
+	} else if epg != nil {
+		epCfg.EndpointGroupID = epg.EndpointGroupID
+		epCfg.Bw = epg.Bandwidth
 	}
 
 	err = epCfg.Write()
